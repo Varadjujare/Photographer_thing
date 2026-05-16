@@ -1,65 +1,156 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { useEffect, useRef } from "react";
+import dynamic from "next/dynamic";
+
+/* ═══════════════════════════════════════
+   STATIC IMPORTS
+   Above-the-fold sections load immediately.
+   ═══════════════════════════════════════ */
+import LoadingScreen   from "@/components/LoadingScreen";
+import Navbar          from "@/components/Navbar";
+import Hero            from "@/components/Hero";
+import ScrollProgress  from "@/components/ScrollProgress";
+import WhatsAppFloat   from "@/components/WhatsAppFloat";
+
+/* ═══════════════════════════════════════
+   LAZY IMPORTS
+   Below-the-fold sections are code-split
+   and only fetched when the user scrolls.
+   Each gets a lightweight skeleton fallback.
+   ═══════════════════════════════════════ */
+const Portfolio      = dynamic(() => import("@/components/Portfolio"),      { loading: () => <SectionSkeleton /> });
+const SoulCinema     = dynamic(() => import("@/components/SoulCinema"),     { loading: () => <SectionSkeleton /> });
+const About          = dynamic(() => import("@/components/About"),          { loading: () => <SectionSkeleton /> });
+const Services       = dynamic(() => import("@/components/Services"),       { loading: () => <SectionSkeleton /> });
+const Testimonials   = dynamic(() => import("@/components/Testimonials"),   { loading: () => <SectionSkeleton /> });
+const InstagramSection = dynamic(() => import("@/components/Instagram"),    { loading: () => <SectionSkeleton /> });
+const Booking        = dynamic(() => import("@/components/Booking"),        { loading: () => <SectionSkeleton /> });
+const FAQ            = dynamic(() => import("@/components/FAQ"),            { loading: () => <SectionSkeleton /> });
+const Footer         = dynamic(() => import("@/components/Footer"),         { loading: () => null });
+
+/* ═══════════════════════════════════════
+   SECTION SKELETON
+   Prevents layout shift while lazy sections load.
+   ═══════════════════════════════════════ */
+function SectionSkeleton() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
+    <div
+      aria-hidden
+      style={{
+        minHeight:  "400px",
+        background: "var(--surface)",
+        animation:  "pulse 2s ease-in-out infinite",
+      }}
+    />
+  );
+}
+
+/* ═══════════════════════════════════════
+   SCROLL REVEAL HOOK
+   Observes every element with [data-reveal]
+   and adds .revealed once it enters viewport.
+   ═══════════════════════════════════════ */
+function useScrollReveal() {
+  useEffect(() => {
+    const targets = document.querySelectorAll<HTMLElement>("[data-reveal]");
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("revealed");
+            observer.unobserve(entry.target); // fire once
+          }
+        });
+      },
+      { threshold: 0.12, rootMargin: "0px 0px -48px 0px" }
+    );
+
+    targets.forEach((el) => {
+      el.classList.add("reveal"); // ensures base opacity:0 style
+      observer.observe(el);
+    });
+
+    return () => observer.disconnect();
+  }, []);
+}
+
+/* ═══════════════════════════════════════
+   HOMEPAGE
+   ═══════════════════════════════════════ */
+export default function Home() {
+  useScrollReveal();
+
+  return (
+    <>
+      {/* Accessibility: skip to main content */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[99999] focus:px-4 focus:py-2 focus:rounded focus:bg-[var(--gold)] focus:text-black focus:font-medium focus:text-sm"
+      >
+        Skip to main content
+      </a>
+
+      {/* Animated gold scroll progress bar */}
+      <ScrollProgress />
+
+      {/* Full-screen loading splash */}
+      <LoadingScreen />
+
+      {/* Sticky navigation */}
+      <Navbar />
+
+      {/*
+        Each section has:
+          id       → for anchor navigation (Navbar links)
+          data-reveal → picked up by useScrollReveal for fade-in
+          aria-label  → screen reader landmark label
+      */}
+      <main id="main-content">
+
+        <section id="home" aria-label="Hero">
+          <Hero />
+        </section>
+
+        <section id="portfolio" aria-label="Portfolio" data-reveal>
+          <Portfolio />
+        </section>
+
+        <section id="soul-cinema" aria-label="Soul Cinema" data-reveal>
+          <SoulCinema />
+        </section>
+
+        <section id="about" aria-label="About" data-reveal>
+          <About />
+        </section>
+
+        <section id="services" aria-label="Services" data-reveal>
+          <Services />
+        </section>
+
+        <section id="testimonials" aria-label="Testimonials" data-reveal>
+          <Testimonials />
+        </section>
+
+        <section id="instagram" aria-label="Instagram feed" data-reveal>
+          <InstagramSection />
+        </section>
+
+        <section id="booking" aria-label="Book a session" data-reveal>
+          <Booking />
+        </section>
+
+        <section id="faq" aria-label="FAQ" data-reveal>
+          <FAQ />
+        </section>
+
       </main>
-    </div>
+
+      <Footer />
+
+      {/* Floating WhatsApp CTA */}
+      <WhatsAppFloat />
+    </>
   );
 }
