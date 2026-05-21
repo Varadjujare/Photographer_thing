@@ -84,8 +84,22 @@ body {
   color:       var(--foreground);
   font-family: 'Poppins', sans-serif;
   overflow-x:  hidden;
+  /* Prevent rubber-band jank & keep scrolling on GPU compositor */
+  overscroll-behavior: none;
   transition:  background-color 0.6s var(--ease-smooth),
                color 0.6s var(--ease-smooth);
+}
+
+/* Skip rendering off-screen sections — biggest scroll perf win */
+main > section {
+  content-visibility: auto;
+  contain-intrinsic-size: 0 600px;
+}
+
+/* Hero is always visible — never skip it */
+main > section#home {
+  content-visibility: visible;
+  contain-intrinsic-size: none;
 }
 
 /* ═══════════════════════════════════════

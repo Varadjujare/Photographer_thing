@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion } from "framer-motion";
 import { useRef, useEffect, useState } from "react";
 
 const YT_VIDEO_ID = "tyBJioe8gOs";
@@ -11,13 +11,7 @@ export default function Hero() {
   const iframeRef = useRef(null);
   const [loaded, setLoaded] = useState(false);
 
-  const { scrollYProgress } = useScroll({
-    target: sectionRef,
-    offset: ["start start", "end start"],
-  });
-
-  const contentY = useTransform(scrollYProgress, [0, 1], ["0%", "12%"]);
-  const overlayOpacity = useTransform(scrollYProgress, [0, 0.6], [0.55, 0.85]);
+  // Parallax removed — JS-driven scroll transforms block the main thread.
 
   // Load YouTube IFrame API and autoplay muted
   useEffect(() => {
@@ -476,7 +470,7 @@ export default function Hero() {
         />
 
         {/* Main Content */}
-        <motion.div className="hero-content" style={{ y: contentY }}>
+        <motion.div className="hero-content" style={{ transform: "translateZ(0)", willChange: "auto" }}>
           <motion.p
             className="hero-eyebrow"
             initial={{ opacity: 0, y: 16 }}

@@ -97,6 +97,35 @@ export default function Services() {
       </div>
 
       {/* ── Services grid — full bleed ── */}
+      <style>{`
+        .svc-card {
+          position: relative;
+          overflow: hidden;
+          border-right: 1px solid var(--border-color);
+          border-bottom: 1px solid var(--border-color);
+          padding: 48px 40px 40px;
+          min-height: 320px;
+          display: flex;
+          flex-direction: column;
+          transition: background 0.3s ease;
+          contain: layout style paint;
+        }
+        .svc-card:hover { background: rgba(212,175,55,0.03); }
+        /* Gold top bar — translateX is compositor-only, scaleX triggers layout */
+        .svc-card::before {
+          content: '';
+          position: absolute;
+          top: 0; left: 0; right: 0;
+          height: 2px;
+          background: var(--gold, #D4AF37);
+          transform: translateX(-101%);
+          transition: transform 0.45s cubic-bezier(0.25,0.46,0.45,0.94);
+          will-change: transform;
+        }
+        .svc-card:hover::before { transform: translateX(0); }
+        .svc-grid-anim { animation: svcFadeUp 0.55s ease both; }
+        @keyframes svcFadeUp { from { opacity:0; transform:translateY(24px); } to { opacity:1; transform:translateY(0); } }
+      `}</style>
       <div
         className="w-full border-t border-b"
         style={{ borderColor: "var(--border-color)" }}
@@ -148,31 +177,10 @@ function ServiceCard({
   index: number;
 }) {
   return (
-    <motion.div
-      className="group relative overflow-hidden transition-colors duration-300"
-      style={{
-        borderRight: "1px solid var(--border-color)",
-        borderBottom: "1px solid var(--border-color)",
-        padding: "48px 40px 40px",
-        minHeight: 320,
-        display: "flex",
-        flexDirection: "column",
-      }}
-      initial={{ opacity: 0, y: 30 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, delay: index * 0.07 }}
-      viewport={{ once: true, margin: "-60px" }}
-      onMouseEnter={e =>
-        (e.currentTarget.style.background = "rgba(212,175,55,0.03)")
-      }
-      onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
+    <div
+      className="svc-card svc-grid-anim"
+      style={{ animationDelay: `${index * 0.07}s` }}
     >
-      {/* Gold top bar on hover */}
-      <div
-        className="absolute top-0 left-0 right-0 h-[2px] origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500"
-        style={{ background: "var(--gold, #D4AF37)" }}
-      />
-
       {/* Number + Icon */}
       <div
         style={{
@@ -196,22 +204,15 @@ function ServiceCard({
         </span>
 
         <div
-          className="group-hover:border-[var(--gold)] group-hover:bg-[rgba(212,175,55,0.08)] transition-all duration-300"
           style={{
-            width: 44,
-            height: 44,
+            width: 44, height: 44,
             border: "1px solid var(--border-color)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
+            display: "flex", alignItems: "center", justifyContent: "center",
             flexShrink: 0,
+            transition: "border-color 0.3s, background 0.3s",
           }}
         >
-          <service.icon
-            size={18}
-            style={{ color: "var(--gold, #D4AF37)" }}
-            strokeWidth={1.5}
-          />
+          <service.icon size={18} style={{ color: "var(--gold, #D4AF37)" }} strokeWidth={1.5} />
         </div>
       </div>
 
@@ -247,43 +248,25 @@ function ServiceCard({
         </span>
       )}
 
-      {/* Description — flex-grow pushes price to bottom */}
+      {/* Description */}
       <p
         style={{
-          fontSize: 13,
-          lineHeight: 1.8,
+          fontSize: 13, lineHeight: 1.8,
           color: "var(--muted, #8a8275)",
-          flexGrow: 1,
-          marginBottom: 28,
-          wordBreak: "break-word",
-          overflowWrap: "break-word",
+          flexGrow: 1, marginBottom: 28,
         }}
       >
         {service.description}
       </p>
 
       {/* Price + Enquire */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          marginTop: "auto",
-        }}
-      >
-        <p
-          style={{
-            fontSize: 13,
-            fontWeight: 500,
-            color: "var(--gold, #D4AF37)",
-          }}
-        >
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: "auto" }}>
+        <p style={{ fontSize: 13, fontWeight: 500, color: "var(--gold, #D4AF37)" }}>
           {service.price}
         </p>
-
         <a
           href="#contact"
-          className="flex items-center gap-1.5 text-xs tracking-widest uppercase opacity-0 group-hover:opacity-100 translate-y-1 group-hover:translate-y-0 transition-all duration-300"
+          className="flex items-center gap-1.5 text-xs tracking-widest uppercase opacity-0 group-hover:opacity-100 transition-opacity duration-300"
           style={{ color: "var(--muted, #8a8275)" }}
           aria-label={`Enquire about ${service.title}`}
         >
@@ -291,6 +274,6 @@ function ServiceCard({
           <ArrowUpRight size={12} />
         </a>
       </div>
-    </motion.div>
+    </div>
   );
 }

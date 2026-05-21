@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion } from "framer-motion";
 import Image from "next/image";
 import { useRef } from "react";
 import { FaInstagram as InstagramIcon } from "react-icons/fa";
@@ -19,11 +19,7 @@ const instagramImages = [
 
 export default function InstagramSection() {
   const sectionRef = useRef(null);
-  const { scrollYProgress } = useScroll({
-    target: sectionRef,
-    offset: ["start end", "end start"],
-  });
-  const headerY = useTransform(scrollYProgress, [0, 1], ["-6%", "6%"]);
+  // Parallax removed — JS scroll transforms block the main thread.
 
   return (
     <>
@@ -157,17 +153,20 @@ export default function InstagramSection() {
           overflow: hidden;
           cursor: pointer;
           display: block;
+          contain: layout style paint;
         }
 
         .ig-cell-img {
           width: 100%;
           height: 100%;
           object-fit: cover;
-          transition: transform 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+          transition: transform 0.55s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+          will-change: transform;
+          transform: translateZ(0);
         }
 
         .ig-cell:hover .ig-cell-img {
-          transform: scale(1.1);
+          transform: scale(1.08) translateZ(0);
         }
 
         /* Hover overlay */
@@ -291,7 +290,7 @@ export default function InstagramSection() {
 
       <section className="ig-section" ref={sectionRef}>
         {/* Header */}
-        <motion.div className="ig-header" style={{ y: headerY }}>
+        <div className="ig-header">
           <motion.p
             className="ig-overline"
             initial={{ opacity: 0, y: 16 }}
@@ -341,21 +340,17 @@ export default function InstagramSection() {
               </div>
             ))}
           </motion.div>
-        </motion.div>
+        </div>
 
         {/* Grid */}
         <div className="ig-grid">
           {instagramImages.map((item, i) => (
-            <motion.a
+            <a
               key={i}
               href="https://www.instagram.com/mbphotography011?igsh=MWk3MW1lcXZwanN0cg=="
               target="_blank"
               rel="noopener noreferrer"
               className="ig-cell"
-              initial={{ opacity: 0, scale: 0.97 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.5, delay: i * 0.04, ease: [0.25, 0.46, 0.45, 0.94] }}
-              viewport={{ once: true }}
             >
               <Image
                 src={item.src}
@@ -363,13 +358,15 @@ export default function InstagramSection() {
                 fill
                 sizes="(max-width: 1024px) 33vw, 11vw"
                 className="ig-cell-img"
+                loading="lazy"
+                decoding="async"
               />
               <div className="ig-cell-overlay">
                 <InstagramIcon className="ig-cell-icon" />
                 <span className="ig-cell-likes">♥ {item.likes}</span>
                 <span className="ig-cell-tag">#{item.tag}</span>
               </div>
-            </motion.a>
+            </a>
           ))}
         </div>
 

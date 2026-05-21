@@ -127,67 +127,76 @@ export default function Portfolio() {
         </motion.div>
       </div>
 
-      {/* Masonry Grid (Full Width) */}
+      {/* Masonry Grid (Full Width) — CSS-only hover, no layout recalc */}
+      <style>{`
+        .portfolio-img {
+          object-fit: cover;
+          transition: transform 0.45s cubic-bezier(0.25,0.46,0.45,0.94);
+          will-change: transform;
+          transform: translateZ(0);
+        }
+        .portfolio-card:hover .portfolio-img { transform: scale(1.05) translateZ(0); }
+        .portfolio-overlay {
+          position: absolute; inset: 0;
+          background: rgba(0,0,0,0);
+          transition: background 0.28s ease;
+          display: flex; align-items: flex-end; padding: 16px;
+        }
+        .portfolio-card:hover .portfolio-overlay { background: rgba(0,0,0,0.42); }
+        .portfolio-overlay-inner {
+          opacity: 0;
+          transform: translateY(12px);
+          transition: opacity 0.28s ease, transform 0.28s ease;
+          display: flex; align-items: center; justify-content: space-between; width: 100%;
+        }
+        .portfolio-card:hover .portfolio-overlay-inner { opacity: 1; transform: translateY(0); }
+        .portfolio-grid-enter { animation: pgFadeIn 0.3s ease both; }
+        @keyframes pgFadeIn { from { opacity:0; } to { opacity:1; } }
+      `}</style>
       <div className="w-full px-4 md:px-6 mb-16">
-        <motion.div className="masonry-grid" layout>
-          <AnimatePresence mode="popLayout">
-            {filteredImages.map((img, index) => (
-              <motion.div
-                key={img.id}
-                layout
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                transition={{ duration: 0.4, delay: index * 0.05 }}
-                className="relative group cursor-pointer overflow-hidden"
-                onClick={() => openLightbox(index)}
-              >
-                <div
-                  className="relative"
-                  style={{
-                    aspectRatio:
-                      img.aspect === "portrait"
-                        ? "3/4"
-                        : img.aspect === "square"
-                        ? "1/1"
-                        : "4/3",
-                  }}
-                >
-                  <Image
-                    src={img.src}
-                    alt={img.title}
-                    fill
-                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                    className="object-cover transition-all duration-500 grayscale group-hover:grayscale-0 group-hover:scale-105"
-                  />
-                  {/* Hover Overlay */}
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-300 flex items-end p-4">
-                    <div className="translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-between w-full">
-                      <div>
-                        <span
-                          className="text-xs tracking-wider uppercase"
-                          style={{ color: "var(--gold)" }}
-                        >
-                          {img.category}
-                        </span>
-                        <p className="text-white text-sm mt-1 font-medium">
-                          {img.title}
-                        </p>
-                      </div>
-                      <ArrowUpRight size={20} className="text-white" />
-                    </div>
+        <div key={activeFilter} className="masonry-grid portfolio-grid-enter">
+          {filteredImages.map((img, index) => (
+            <div
+              key={img.id}
+              className="portfolio-card relative cursor-pointer overflow-hidden"
+              onClick={() => openLightbox(index)}
+              style={{
+                aspectRatio:
+                  img.aspect === "portrait" ? "3/4"
+                  : img.aspect === "square" ? "1/1"
+                  : "4/3",
+                contain: "layout style paint",
+              }}
+            >
+              <Image
+                src={img.src}
+                alt={img.title}
+                fill
+                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                className="portfolio-img"
+                loading="lazy"
+                decoding="async"
+              />
+              <div className="portfolio-overlay">
+                <div className="portfolio-overlay-inner">
+                  <div>
+                    <span className="text-xs tracking-wider uppercase" style={{ color: "var(--gold)" }}>
+                      {img.category}
+                    </span>
+                    <p className="text-white text-sm mt-1 font-medium">{img.title}</p>
                   </div>
+                  <ArrowUpRight size={20} className="text-white" />
                 </div>
-              </motion.div>
-            ))}
-          </AnimatePresence>
-        </motion.div>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
       <div className="max-w-7xl mx-auto px-6">
-        {/* View Full Portfolio Button */}
+        {/* Buttons Row */}
         <motion.div
-          className="text-center mt-16"
+          className="flex flex-col sm:flex-row items-center justify-center gap-5 mt-16"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
@@ -196,12 +205,39 @@ export default function Portfolio() {
           <a
             href="/portfolio"
             className="inline-block px-8 py-3.5 text-sm tracking-wider uppercase border transition-all duration-300 hover:bg-[var(--gold)] hover:text-black"
-            style={{
-              borderColor: "var(--gold)",
-              color: "var(--gold)",
-            }}
+            style={{ borderColor: "var(--gold)", color: "var(--gold)" }}
           >
             View Full Portfolio
+          </a>
+
+          {/* ── Explore More Button ── */}
+          <a
+            href="/explore"
+            className="group relative inline-flex items-center gap-3 px-9 py-4 text-sm tracking-wider uppercase overflow-hidden transition-all duration-500"
+            style={{
+              background: "var(--gold)",
+              color: "#000",
+              fontWeight: 600,
+            }}
+          >
+            {/* Shimmer sweep */}
+            <span
+              className="absolute inset-0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"
+              style={{
+                background:
+                  "linear-gradient(90deg,transparent 0%,rgba(255,255,255,0.28) 50%,transparent 100%)",
+              }}
+            />
+            <span className="relative z-10">Explore More Work</span>
+            <svg
+              className="relative z-10 transition-transform duration-300 group-hover:translate-x-1"
+              width="16"
+              height="16"
+              viewBox="0 0 16 16"
+              fill="none"
+            >
+              <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
           </a>
         </motion.div>
       </div>
